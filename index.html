@@ -11,6 +11,7 @@ Press the note shown and a new one will be randomly generated</p>
 <script>
 
 if (navigator.requestMIDIAccess) {
+	init_site()
     navigator.requestMIDIAccess()
     .then(onMIDISuccess, onMIDIFailure);
 } else {
@@ -24,6 +25,8 @@ function onMIDISuccess(midiAccess) {
 
     var inputs = midiAccess.inputs;
     var outputs = midiAccess.outputs;
+	
+	
 }
 
 function onMIDIFailure() {
@@ -173,21 +176,27 @@ function noteOff(note, velocity) {
 	context_ans = handle[0]
 	stave_ans = handle[1]
 }
-VF = Vex.Flow;
 
-// Create an SVG renderer and attach it to the DIV element named "challenge".
-var div_cha = document.getElementById("challenge")
-var div_ans = document.getElementById("answer")
+var div_cha
+var div_ans
+
+function init_site() {
+	VF = Vex.Flow;
+
+	// Create an SVG renderer and attach it to the DIV element named "challenge".
+	div_cha = document.getElementById("challenge")
+	div_ans = document.getElementById("answer")
 
 
 
-handle = print_notes(div_ans)
-context_ans = handle[0]
-stave_ans = handle[1]
+	handle = print_notes(div_ans)
+	context_ans = handle[0]
+	stave_ans = handle[1]
 
-note_cha = Math.floor(Math.random() * 12);
+	note_cha = Math.floor(Math.random() * 12);
 
-new_challenge (note_cha)
+	new_challenge (note_cha)
+}
 
 function new_challenge (note) {
 	document.getElementById('challenge').innerHTML = ''
