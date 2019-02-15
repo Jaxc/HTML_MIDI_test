@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html>
 <body>
-
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="https://unpkg.com/vexflow/releases/vexflow-min.js"></script>
 <p>Jaxc very simple WebMIDI page, plug in a midi keyboard and press ONE key.
 <br>
-The key pressed should be written on the page below</p>
-<p id="demo"></p>
+Press the note shown and a new one will be randomly generated</p>
+<div id="challenge"></div>
+<p id="answer"></p>
 <script>
 
 if (navigator.requestMIDIAccess) {
     navigator.requestMIDIAccess()
     .then(onMIDISuccess, onMIDIFailure);
 } else {
-	document.getElementById('demo').innerHTML = 'WebMIDI is not supported in this browser.'
+	document.getElementById('answer').innerHTML = 'WebMIDI is not supported in this browser.'
     console.log('WebMIDI is not supported in this browser.');
 }
 
@@ -105,12 +107,132 @@ function MidiLookup(note) {
     break;
   }
 };
+
+function sharp_lookup(note) {
+  switch (note % 12) {
+    case 1:
+      return 1;
+    break;
+
+    case 3:
+      return 1;
+    break;
+	
+    case 6:
+      return 1;
+    break;
+
+    case 8:
+      return 1;
+    break;
+
+    case 10:
+      return 1;
+    break;
+	
+	default:
+	  return 0;
+	break;
+  }
+};
+
+
 function noteOn(note, velocity) {
-	document.getElementById('demo').innerHTML = MidiLookup(note)
+	if(sharp_lookup(note) == 1) {
+		var notes = [
+			// A quarter-note.
+			new VF.StaveNote({clef: "treble", keys: [MidiLookup(note)+"/4"], duration: "q" }).addAccidental(0, new VF.Accidental("#"))
+		];		
+	} else {
+		var notes = [
+			// A quarter-note.
+			new VF.StaveNote({clef: "treble", keys: [MidiLookup(note)+"/4"], duration: "q" })
+		];	
+	}
+
+
+	var voice = new VF.Voice({num_beats: 1,  beat_value: 4});
+	voice.addTickables(notes);
+
+	// Format and justify the notes to 400 pixels.
+	var formatter = new VF.Formatter().joinVoices([voice]).format([voice], 400);
+
+	// Render voice
+	voice.draw(context_ans, stave_ans);
+	
+	if (note % 12 == note_cha) {
+		note_cha = Math.floor(Math.random() * 12);
+
+		new_challenge (note_cha);
+	}
 }
 
 function noteOff(note, velocity) {
-	document.getElementById('demo').innerHTML = ''
+	document.getElementById('answer').innerHTML = ''
+	handle = print_notes(div_ans)
+	context_ans = handle[0]
+	stave_ans = handle[1]
+}
+VF = Vex.Flow;
+
+// Create an SVG renderer and attach it to the DIV element named "challenge".
+var div_cha = document.getElementById("challenge")
+var div_ans = document.getElementById("answer")
+
+
+
+handle = print_notes(div_ans)
+context_ans = handle[0]
+stave_ans = handle[1]
+
+note_cha = Math.floor(Math.random() * 12);
+
+new_challenge (note_cha)
+
+function new_challenge (note) {
+	document.getElementById('challenge').innerHTML = ''
+	handle = print_notes(div_cha)
+	context_cha = handle[0]
+	stave_cha = handle[1]
+
+	if(sharp_lookup(note) == 1) {
+		var notes = [
+			// A quarter-note.
+			new VF.StaveNote({clef: "treble", keys: [MidiLookup(note)+"/4"], duration: "q" }).addAccidental(0, new VF.Accidental("#"))
+		];		
+	} else {
+		var notes = [
+			// A quarter-note.
+			new VF.StaveNote({clef: "treble", keys: [MidiLookup(note)+"/4"], duration: "q" })
+		];	
+	}
+
+	var voice = new VF.Voice({num_beats: 1,  beat_value: 4});
+	voice.addTickables(notes);
+
+	// Format and justify the notes to 400 pixels.
+	var formatter = new VF.Formatter().joinVoices([voice]).format([voice], 400);
+
+	// Render voice
+	voice.draw(context_cha, stave_cha);
+}
+function print_notes(div) {
+	var renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);
+
+	// Configure the rendering context.
+	renderer.resize(500, 200);
+	var context = renderer.getContext();
+	context.setFont("Arial", 10, "").setBackgroundFillStyle("#eed");
+
+	// Create a stave of width 400 at position 10, 40 on the canvas.
+	var stave = new VF.Stave(10, 40, 400);
+
+	// Add a clef and time signature.
+	stave.addClef("treble");
+
+	// Connect it to the rendering context and draw!
+	stave.setContext(context).draw();
+	return [context, stave];
 }
 </script>
 
